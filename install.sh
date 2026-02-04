@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Housekeeping messages
 echo "Streamity Installer v0.1.1. Created by S.I. Dalton."

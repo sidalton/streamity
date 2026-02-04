@@ -1,6 +1,5 @@
-#!/bin/sh
-scriptVersion="0.1.3"
-set -o pipefail
+#!/bin/bash
+scriptVersion="0.1.4"
 
 # Variables for temp files for logs
 videoTmpFile=$(mktemp)
@@ -25,10 +24,10 @@ startFlow() {
     export videoPID=$!
     sleep 3
     flatpak run com.obsproject.Studio --multi --profile "Partial Public Stream" > "$obs1TmpFile" 2>&1 &
-    obs1PID=$!
+    export obs1PID=$!
     sleep 5
     flatpak run com.obsproject.Studio --multi --profile "Full Private Stream" > "$obs2TmpFile" 2>&1 &
-    obs2PID=$!
+    export obs2PID=$!
 }
 
 # Function to stop the streaming flow
@@ -37,15 +36,17 @@ stopFlow() {
    
     kill $videoPID
     wait $videoPID
-    export -n videoPID
+    export videoPID=""
     # make sure videoPID is empty
 
     kill $obs1PID
     wait $obs1PID
+    export obs1PID=""
 
     kill $obs2PID
     wait $obs2PID
-
+    export obs2PID=""
+    
     echo "Streamity has stopped."
     exit 0
 }
@@ -68,7 +69,6 @@ saveLogs() {
     echo "$videoLogs" > /var/log/streamity/video.log
     echo "$obs1Logs" > /var/log/streamity/obs1.log
     echo "$obs2Logs" > /var/log/streamity/obs2.log
-    )
 }
 
 # Main script logic
