@@ -21,32 +21,32 @@ startFlow() {
     printf "Press [Enter] to start..."
     read -r _ || true
     exec 3> >(dvgrab - | ffmpeg -i - -vcodec rawvideo -pix_fmt yuv420p -f v4l2 /dev/video2 > "$videoTmpFile" 2>&1 &)
-    export videoPID=$!
+    videoPID=$!
     sleep 3
     flatpak run com.obsproject.Studio --multi --profile "Partial Public Stream" > "$obs1TmpFile" 2>&1 &
-    export obs1PID=$!
+    obs1PID=$!
     sleep 5
     flatpak run com.obsproject.Studio --multi --profile "Full Private Stream" > "$obs2TmpFile" 2>&1 &
-    export obs2PID=$!
+    obs2PID=$!
 }
 
 # Function to stop the streaming flow
 stopFlow() {
     # check if variable exists
    
-    kill $videoPID
-    wait $videoPID
-    export videoPID=""
+    kill "$videoPID"
+    wait "$videoPID"
+    videoPID=""
     # make sure videoPID is empty
 
-    kill $obs1PID
-    wait $obs1PID
-    export obs1PID=""
+    kill "$obs1PID"
+    wait "$obs1PID"
+    obs1PID=""
 
-    kill $obs2PID
-    wait $obs2PID
-    export obs2PID=""
-    
+    kill "$obs2PID"
+    wait "$obs2PID"
+    obs2PID=""
+
     echo "Streamity has stopped."
     exit 0
 }
