@@ -18,10 +18,11 @@ progInfo
 
 # Function to start the streaming flow
 startFlow() {
+    # check for variables
     printf "Press [Enter] to start..."
     read -r _ || true
     exec 3> >(dvgrab - | ffmpeg -i - -vcodec rawvideo -pix_fmt yuv420p -f v4l2 /dev/video2 > "$videoTmpFile" 2>&1 &)
-    videoPID=$!
+    export videoPID=$!
     sleep 3
     flatpak run com.obsproject.Studio --multi --profile "Partial Public Stream" > "$obs1TmpFile" 2>&1 &
     obs1PID=$!
@@ -32,8 +33,12 @@ startFlow() {
 
 # Function to stop the streaming flow
 stopFlow() {
+    # check if variable exists
+   
     kill $videoPID
     wait $videoPID
+    export -n videoPID
+    # make sure videoPID is empty
 
     kill $obs1PID
     wait $obs1PID

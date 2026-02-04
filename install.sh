@@ -3,7 +3,7 @@
 # Housekeeping messages
 echo "Streamity Installer v0.1.1. Created by S.I. Dalton."
 echo "This script will install Streamity on your system."
-read -p "Press [Enter] to continue with the installation..." || true
+read -p "Press [Enter] to continue with the installation..."
 
 folderDir="$(cd "$(dirname "$0")" && pwd)"
 
