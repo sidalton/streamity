@@ -40,6 +40,6 @@ Verification failed! The installation will be aborted.
 ```
 This means that the hash in the CHECKSUM.sha512 file doesn't match the hashes of the scripts. You should redownload the files.
 > [!NOTE]
-> For versions prior to v1.0.3, hashes were not correct. While I wouldn't recommend using these versions, if you must use them, then comment out lines 11-16 to bypass the verification.
+> For versions prior to v1.0.3, hashes were not correct. While I wouldn't recommend using these versions, if you must use them, then comment out lines 11-16 in `install.sh` to bypass the verification.
 
 #### If you find any other errors, please open an issue.
