@@ -2,11 +2,15 @@
 A custom shell script tool that starts services for streaming with Bash.
 
 ## Installation
+Change the directories to the streamity folder to make installation easier.
+```
+cd path/to/streamity-x.x
+```
 Before installing make sure to change permissions for the `install.sh` file before trying to install:
 ```
-chmod +x path/install.sh
+chmod +x install.sh
 ```
-Make sure the `path` in the above command is replaced with the file path. Then run the `install.sh` script:
+Make sure the `path` in the above command is replaced with the file path (if you changed directories then that's not necessary). Then run the `install.sh` script:
 ```
 sudo ./install.sh
 ```
