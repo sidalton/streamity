@@ -1,10 +1,11 @@
 #!/bin/bash
-scriptVersion="0.1.4"
+scriptVersion="1.0.3"
 
-# Variables for temp files for logs
-videoTmpFile=$(mktemp)
-obs1TmpFile=$(mktemp)
-obs2TmpFile=$(mktemp)
+pidStoreFile="/tmp/streamity.conf"
+logFolder="/var/log/streamity"
+
+#echo "Running as: $(whoami)"
+
 
 # Shows Streamity program information
 progInfo() {
@@ -13,62 +14,77 @@ progInfo() {
     echo "For more information, visit https://github.com/sidalton/streamity"
 }
 
-progInfo
+# Function to simulate a service for debugging
+debugService() {
+    while true; do
+    echo "[$(date)] Fake log for $1."
+    sleep 2
+    done &
+}
+
 
 # Function to start the streaming flow
 startFlow() {
-    # check for variables
+    progInfo
+    
+    # check for variables to see if already running (later version)
+    true > $pidStoreFile
     printf "Press [Enter] to start..."
     read -r _ || true
-    exec 3> >(dvgrab - | ffmpeg -i - -vcodec rawvideo -pix_fmt yuv420p -f v4l2 /dev/video2 > "$videoTmpFile" 2>&1 &)
+
+    exec 3> >(dvgrab - | ffmpeg -i - -vcodec rawvideo -pix_fmt yuv420p -f v4l2 /dev/video2 > "$logFolder/video.log" 2>&1 &)
+
+    #debugService "video" >> $logFolder/video.log
+
     videoPID=$!
-    sleep 3
-    flatpak run com.obsproject.Studio --multi --profile "Partial Public Stream" > "$obs1TmpFile" 2>&1 &
-    obs1PID=$!
+
+    #cat $videoPID
+    echo "$videoPID" >> $pidStoreFile
+    #cat $pidStoreFile
+
     sleep 5
-    flatpak run com.obsproject.Studio --multi --profile "Full Private Stream" > "$obs2TmpFile" 2>&1 &
+
+    flatpak run com.obsproject.Studio --multi --profile "Partial Public Stream" --collection "Partial Public" > "$logFolder/obs1.log" 2>&1 &
+
+    #debugService "obs1" >> $logFolder/obs1.log
+
+    obs1PID=$!
+
+    #cat $obs1PID
+    echo "$obs1PID" >> $pidStoreFile
+    #cat $pidStoreFile
+
+    sleep 5
+
+    flatpak run com.obsproject.Studio --multi --profile "Full Private Stream" --collection "Full Private" > "$logFolder/obs2.log" 2>&1 &
+
+    #debugService "obs2" >> $logFolder/obs2.log
+
     obs2PID=$!
+
+    #cat $obs2PID
+    echo "$obs2PID" >> $pidStoreFile
+    #cat $pidStoreFile
 }
 
 # Function to stop the streaming flow
 stopFlow() {
     # check if variable exists
    
-    kill "$videoPID"
-    wait "$videoPID"
-    videoPID=""
-    # make sure videoPID is empty
-
-    kill "$obs1PID"
-    wait "$obs1PID"
-    obs1PID=""
-
-    kill "$obs2PID"
-    wait "$obs2PID"
-    obs2PID=""
+    grep -E '^[0-9]+$' $pidStoreFile | xargs kill
+    true > "$pidStoreFile"
 
     echo "Streamity has stopped."
     exit 0
 }
 
 helpMessage() {
-    echo "Usage: $0 [OPTION] [LOGGING]"
+    echo "Usage: $0 [OPTION]"
     echo "Options:"
-    echo "  --start, -s       Start the streaming flow"
-    echo "  --stop, -x        Stop the streaming flow"
+    echo "  --start, -s       Start the streaming processes"
+    echo "  --stop, -x        Stop the streaming processes"
+    echo "  --logs, -l        Display the log file locations"
     echo "  --help, -h        Display this help message"
-    echo "Logging Options:"
-    echo "  --log, -l         Enable logging (saves to /var/log/streamity)"
-}
-
-saveLogs() {
-    videoLogs=$(cat "$videoTmpFile")
-    obs1Logs=$(cat "$obs1TmpFile")
-    obs2Logs=$(cat "$obs2TmpFile")
-
-    echo "$videoLogs" > /var/log/streamity/video.log
-    echo "$obs1Logs" > /var/log/streamity/obs1.log
-    echo "$obs2Logs" > /var/log/streamity/obs2.log
 }
 
 # Main script logic
@@ -82,11 +98,11 @@ case $1 in
     --help|-h)
         helpMessage
     ;;
-esac
-
-# Secondary options handling
-case $2 in
-    --log|-l)
-        saveLogs
+    --logs|-l)
+        echo "Logs may be found at the path: $logFolder."
+        ;;
+    *)
+        echo "Invalid option. Use --help or -h for usage information."
+        exit 1
     ;;
 esac
