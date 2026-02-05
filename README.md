@@ -1,5 +1,5 @@
 # streamity
-A custom shell script tool that starts services for streaming with Bash.
+A custom shell script for use with Bash to start two instances of OBS as well as a `dvgrab` pipe to `ffmpeg` to create an easily-usable DV video device.
 
 ## Installation
 Change the directories to the streamity folder to make installation easier.
