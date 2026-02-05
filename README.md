@@ -6,7 +6,7 @@ Change the directories to the streamity folder to make installation easier.
 ```
 cd path/to/streamity-x.x
 ```
-Before installing make sure to change permissions for the `install.sh` file before trying to install:
+Before installing, make sure to change permissions for the `install.sh` file before trying to install:
 ```
 chmod +x install.sh
 ```
@@ -20,18 +20,26 @@ sudo ./install.sh
 ## Using the script
 ### Usage
 ```
-streamity [OPTION] [LOGGING]
+streamity [OPTION]
 ```
 ### Options
 - `--start` or `-s` will start all serivces.
 - `--stop` or `-x` will stop all serivces.
-- `--help` or `-h` will help.
-
-### Logging
-- `--log` or `-l` will enable logging and save the logs to `/var/log/streamity`.
+- `--help` or `-h` will show help.
+- `--log` or `-l` will show the directory where logs are saved.
 
 ## Example
-The following command will stop the services and save the logs.
+The following command will stop the services.
 ```
-streamity --stop -l
+streamity --stop
 ```
+## Troubleshooting
+### Install Issues
+```
+Verification failed! The installation will be aborted.
+```
+This means that the hash in the CHECKSUM.sha512 file doesn't match the hashes of the scripts. You should redownload the files.
+> [!NOTE]
+> For versions prior to v1.0.3, hashes were not correct. While I wouldn't recommend using these versions, if you must use them, then comment out lines 11-16 to bypass the verification.
+
+#### If you find any other errors, please open an issue.
