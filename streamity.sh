@@ -1,5 +1,5 @@
 #!/bin/bash
-scriptVersion="1.1.0"
+scriptVersion="1.1.1"
 
 pidStoreFile="/tmp/streamity.conf"
 logFolder="/var/log/streamity"
@@ -72,7 +72,6 @@ startFlow() {
 # Function to stop the streaming flow
 stopFlow() {
     # check if variable exists
-    cat $pidStoreFile
     grep -E '^[0-9]+$' $pidStoreFile | xargs kill
     true > "$pidStoreFile"
 
