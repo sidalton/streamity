@@ -1,8 +1,16 @@
 #!/bin/bash
-scriptVersion="1.0.3"
+scriptVersion="1.1.0"
 
 pidStoreFile="/tmp/streamity.conf"
 logFolder="/var/log/streamity"
+
+obsProfile1="Full Private Stream"
+obsCollection1="Full Private"
+
+obsProfile2="Partial Public Stream"
+obsCollection2="Partial Public"
+
+obsCounter=0
 
 #echo "Running as: $(whoami)"
 
@@ -17,9 +25,28 @@ progInfo() {
 # Function to simulate a service for debugging
 debugService() {
     while true; do
-    echo "[$(date)] Fake log for $1."
+    echo "[$(date)] Debug log for $1."
     sleep 2
     done &
+}
+
+# Function to start the video capture service
+videoService() {
+     exec 3> >(dvgrab - | ffmpeg -i - -vcodec rawvideo -pix_fmt yuv420p -f v4l2 /dev/video2 > "$logFolder/video.log" 2>&1 &)
+     #debugService "video" >> $logFolder/video.log
+     videoPID=$!
+     echo "$videoPID" >> $pidStoreFile
+     sleep 5
+}
+
+# Function to start an OBS instance with specified profile and collection
+obsService() {
+    ((obsCounter++))
+    flatpak run com.obsProject.Studio --multi --profile "$1" --collection "$2" > "$logFolder/obs$2.log" 2>&1 &
+    #debugService "obs$1$2" >> "$logFolder/obs$obsCounter.log"
+    declare obsPID="obs${obsCounter}PID"=$!
+    echo "$obsPID" >> $pidStoreFile
+    sleep 5
 }
 
 
@@ -32,45 +59,20 @@ startFlow() {
     printf "Press [Enter] to start..."
     read -r _ || true
 
-    exec 3> >(dvgrab - | ffmpeg -i - -vcodec rawvideo -pix_fmt yuv420p -f v4l2 /dev/video2 > "$logFolder/video.log" 2>&1 &)
+    videoService &
 
-    #debugService "video" >> $logFolder/video.log
+    obsService "$obsProfile1" "$obsCollection1" &
 
-    videoPID=$!
+    obsService "$obsProfile2" "$obsCollection2" &
 
-    #cat $videoPID
-    echo "$videoPID" >> $pidStoreFile
-    #cat $pidStoreFile
-
-    sleep 5
-
-    flatpak run com.obsproject.Studio --multi --profile "Partial Public Stream" --collection "Partial Public" > "$logFolder/obs1.log" 2>&1 &
-
-    #debugService "obs1" >> $logFolder/obs1.log
-
-    obs1PID=$!
-
-    #cat $obs1PID
-    echo "$obs1PID" >> $pidStoreFile
-    #cat $pidStoreFile
-
-    sleep 5
-
-    flatpak run com.obsproject.Studio --multi --profile "Full Private Stream" --collection "Full Private" > "$logFolder/obs2.log" 2>&1 &
-
-    #debugService "obs2" >> $logFolder/obs2.log
-
-    obs2PID=$!
-
-    #cat $obs2PID
-    echo "$obs2PID" >> $pidStoreFile
-    #cat $pidStoreFile
+    echo "Streamity is now running. Please wait a few moments for services to open."
+    exit 0
 }
 
 # Function to stop the streaming flow
 stopFlow() {
     # check if variable exists
-   
+    cat $pidStoreFile
     grep -E '^[0-9]+$' $pidStoreFile | xargs kill
     true > "$pidStoreFile"
 
